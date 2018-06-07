@@ -8,11 +8,11 @@ from data import data_generator, CHUNK_SIZE
 
 
 train_level = 9
-batch_size = 256
+batch_size = 128
 num_classes = 10
-epochs = 5
+epochs = 100
 
-steps_per_epoch = 3 * CHUNK_SIZE // batch_size
+steps_per_epoch = train_level * CHUNK_SIZE // batch_size
 
 img_rows, img_cols = 64, 64
 
@@ -50,12 +50,11 @@ if __name__ == '__main__':
 
     model.save("cnn.model")
 
-    for i in range(90):
-        model.fit_generator(generator=data_generator(batch_size=batch_size),
-                            steps_per_epoch=steps_per_epoch,
-                            epochs=epochs,
-                            use_multiprocessing=True)
-        model.save("cnn.model")
+    model.fit_generator(generator=data_generator(batch_size=batch_size),
+                        steps_per_epoch=steps_per_epoch,
+                        epochs=epochs,
+                        use_multiprocessing=True)
+    model.save("cnn.model")
 
     # model.fit(x_train, y_train,
     #           batch_size=batch_size,
