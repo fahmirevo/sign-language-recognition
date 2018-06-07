@@ -8,7 +8,7 @@ from data import data_generator, CHUNK_SIZE
 
 
 train_level = 9
-batch_size = 128
+batch_size = 32
 num_classes = 10
 epochs = 100
 
