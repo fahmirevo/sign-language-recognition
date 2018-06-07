@@ -52,8 +52,7 @@ if __name__ == '__main__':
 
     model.fit_generator(generator=data_generator(batch_size=batch_size),
                         steps_per_epoch=steps_per_epoch,
-                        epochs=epochs,
-                        verbose=0)
+                        epochs=epochs)
     model.save("cnn.model")
 
     # model.fit(x_train, y_train,
