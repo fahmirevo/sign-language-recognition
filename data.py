@@ -120,6 +120,12 @@ class DataBuilder:
         )
 
     def build(self):
+        shuffled_idx = np.arange(len(self.X))
+        np.random.shuffle(shuffled_idx)
+
+        self.X = self.X[shuffled_idx]
+        self.Y = self.Y[shuffled_idx]
+
         n_chunks = len(self.X) * self.n_modifs // CHUNK_SIZE
         X_chunks = np.array_split(self.X, n_chunks)
         Y_chunks = np.array_split(self.Y, n_chunks)
