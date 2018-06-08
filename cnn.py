@@ -10,7 +10,7 @@ from data import data_generator, CHUNK_SIZE
 train_level = 9
 batch_size = 32
 num_classes = 10
-epochs = 100
+epochs = 20
 
 steps_per_epoch = train_level * CHUNK_SIZE // batch_size
 
