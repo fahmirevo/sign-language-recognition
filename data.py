@@ -69,7 +69,7 @@ class Rotator(ModifierFramework):
 
         for i in range(4):
             mask = rotate_type >= i
-            data[mask] = np.rot90(data[mask])
+            data[mask] = np.rot90(data[mask], axes=(1, 2))
 
         return data
 
@@ -101,7 +101,7 @@ def data_generator(batch_size=128):
 
     while True:
         np.random.shuffle(idxs)
-        X = X[idxs[:batch_size]].copy()
-        Y = Y[idxs[:batch_size]].copy()
+        X_batch = X[idxs[:batch_size]].copy()
+        Y_batch = Y[idxs[:batch_size]].copy()
 
-        yield X, Y
+        yield X_batch, Y_batch
