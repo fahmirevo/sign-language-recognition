@@ -57,7 +57,7 @@ class PixelKiller(ModifierFramework):
 
     def modify(self, data):
         mask = np.random.random(data.shape) < self.th
-        data[mask] = 0
+        data[mask] = np.random.random(data[mask].shape)
         return data
 
 
