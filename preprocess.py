@@ -3,7 +3,7 @@ import scipy.signal as sg
 
 
 def standardize(data):
-    data = (data - np.average(data)) / np.std(data)
+    data = (data - np.mean(data)) / np.std(data)
     return data
 
 
