@@ -74,11 +74,22 @@ class Rotator(ModifierFramework):
         return data
 
 
+class Flipper(ModifierFramework):
+
+    def modify(self, data):
+        flip_type = np.random.random()
+
+        if flip_type < 0.5:
+            data[:] = data[:, ::-1]
+        else:
+            data[:] = data[:, :, ::-1]
+
+
 class RandomModifier:
 
     def __init__(self, generator):
         self.generator = generator
-        self.modifiers = [Blocker(), PixelKiller(), Rotator()]
+        self.modifiers = [Blocker(), PixelKiller(), Rotator(), Flipper()]
 
     def __call__(self, *args, **kwargs):
         self.generator = self.generator(*args, **kwargs)

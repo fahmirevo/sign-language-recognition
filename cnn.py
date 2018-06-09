@@ -10,7 +10,7 @@ from data import data_generator
 train_level = 9
 batch_size = 32
 num_classes = 10
-epochs = 80
+epochs = 150
 
 steps_per_epoch = 2000 / batch_size
 
