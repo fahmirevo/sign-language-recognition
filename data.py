@@ -1,156 +1,101 @@
 import numpy as np
-import scipy.signal as sg
-
-from random import randint
-
-CHUNK_SIZE = 1800
+import abc
 
 
-def copy_and_convert(func):
+class ModifierFramework(metaclass=abc.ABCMeta):
 
-    def wrapper(arr):
-        arr = arr.copy()
+    default_probability = 0.1
 
-        if np.max(arr) <= 1:
-            arr *= 255
+    def __init__(self, probability=None):
+        if probability is None:
+            self.probability = self.default_probability
+        else:
+            self.probability = probability
 
-        arr = func(arr)
+    def do(self, data):
+        mask = self.select(data)
+        data[mask] = self.modify(data[mask])
 
-        if np.max(arr) > 1:
-            arr = normalize(arr)
+    def select(self, data):
+        n_data = data.shape[0]
+        return np.random.random(n_data) < self.probability
 
-        return arr
-
-    return wrapper
-
-
-@copy_and_convert
-def gaussian_noise(arr, th=10):
-    rand = np.random.randint(0, 100, size=arr.shape)
-    nrand = np.random.randint(-128, 128, size=arr.shape)
-    mask = rand < th
-
-    arr[mask] += nrand[mask]
-
-    mask = arr > 255
-    arr[mask] = 255
-
-    mask = arr < 0
-    arr[mask] = 0
-
-    return arr
+    @abc.abstractmethod
+    def modify(self, data):
+        pass
 
 
-def normalize(arr):
-    arr = arr.copy()
-    arr = (arr - np.min(arr)) * 1 / (np.max(arr) - np.min(arr))
-    return arr
+class Blocker(ModifierFramework):
+
+    default_probability = 0.2
+
+    def modify(self, data):
+        n_data = data.shape[0]
+        blocker_type = np.random.random(n_data)
+        blocker_range = np.random.randint(0, 20, n_data)
+
+        mask = blocker_type < 0.3
+        data[mask, blocker_range[mask]:] = 0
+
+        mask = (blocker_type >= 0.3) & (blocker_type < 0.6)
+        data[mask, :blocker_range[mask]] = 0
+
+        mask = (blocker_type >= 0.6) & (blocker_type < 0.8)
+        data[mask, :, blocker_range[mask]:] = 0
+
+        mask = (blocker_type >= 0.8) & (blocker_type < 1)
+        data[mask, :, :blocker_range[mask]] = 0
+
+        return data
 
 
-def sobel(datum):
-    kernel_y = np.array([[1,2,1], [0,0,0], [-1,-2,-1]])
-    kernel_x = np.array([[1,0,-1], [2,0,-2], [1,0,-1]])
+class PixelKiller(ModifierFramework):
 
-    dy = sg.convolve2d(datum, kernel_y, boundary='wrap', mode='same')
-    dx = sg.convolve2d(datum, kernel_x, boundary='wrap', mode='same')
+    th = 0.1
 
-    dist = (dy ** 2 + dx ** 2) ** 0.5
-    dist[dist > 255] = 255
-    return dist
+    def modify(self, data):
+        mask = np.random.random(data.shape)
+        data[mask] = 0
+        return data
 
 
-@copy_and_convert
-def apply_sobel(data):
-    for datum in data:
-        datum[:] = sobel(datum)
+class Rotator(ModifierFramework):
 
-    return data
+    def modify(self, data):
+        n_data = data.shape[0]
+        rotate_type = np.random.randint(0, 4, n_data)
 
+        for i in range(4):
+            mask = rotate_type >= i
+            data[mask] = np.rot90(data[mask])
 
-class DataBuilder:
-
-    def __init__(self):
-        self.X = np.load("dataset/X.npy")
-        self.Y = np.load("dataset/Y.npy")
-
-        self.n_modifs = 10
-
-    def _combine(self, *args, Y_chunk=None):
-        n = len(args)
-
-        X_chunk = np.concatenate(args, axis=0)
-        Y_chunk = np.concatenate((Y_chunk,) * n, axis=0)
-
-        return X_chunk, Y_chunk
-
-    def _modify(self, X_chunk, Y_chunk):
-        real = X_chunk
-        convolved = apply_sobel(real)
-
-        noised = gaussian_noise(real)
-        noised_convolved = apply_sobel(gaussian_noise(real))
-
-        real = normalize(real)
-
-        flipped = real[:, :, ::-1]
-        flipped_convolved = convolved[:, :, ::-1]
-
-        l_blocked = real.copy()
-        r_blocked = real.copy()
-        lc_blocked = convolved.copy()
-        rc_blocked = convolved.copy()
-
-        l_blocked[:, :, :20] = 0
-        r_blocked[:, :, -20:] = 0
-        lc_blocked[:, :, :20] = 0
-        rc_blocked[:, :, -20:] = 0
-
-        return self._combine(
-            real,
-            convolved,
-            noised,
-            noised_convolved,
-            flipped,
-            flipped_convolved,
-            l_blocked,
-            r_blocked,
-            lc_blocked,
-            rc_blocked,
-            Y_chunk=Y_chunk
-        )
-
-    def build(self):
-        shuffled_idx = np.arange(len(self.X))
-        np.random.shuffle(shuffled_idx)
-
-        self.X = self.X[shuffled_idx]
-        self.Y = self.Y[shuffled_idx]
-
-        n_chunks = len(self.X) * self.n_modifs // CHUNK_SIZE
-        X_chunks = np.array_split(self.X, n_chunks)
-        Y_chunks = np.array_split(self.Y, n_chunks)
-
-        for i in range(len(X_chunks)):
-            X_chunk, Y_chunk = self._modify(X_chunks[i], Y_chunks[i])
-            np.save("dataset/X_data" + str(i), X_chunk)
-            np.save("dataset/Y_data" + str(i), Y_chunk)
+        return data
 
 
-def data_generator(train_level=9, batch_size=128):
+class RandomModifier:
+
+    def __init__(self, generator):
+        self.generator = generator
+        self.modifiers = [Blocker(), PixelKiller(), Rotator()]
+
+    def __next__(self):
+        data = next(self.generator)
+        for modifier in self.modifiers:
+            data = self.modifiers.do(data)
+
+        return data
+
+
+@RandomModifier
+def data_generator(batch_size=128):
+    X = np.load("dataset/X_train.npy")
+    Y = np.load("dataset/Y_train.npy")
+
+    idxs = np.arange(len(X))
+
     while True:
-        rand = randint(0, train_level)
-        X = np.load("dataset/X_data" + str(rand) + ".npy")
-        Y = np.load("dataset/Y_data" + str(rand) + ".npy")
-
-        X = X.reshape(X.shape + (1,))
-
-        idxs = np.arange(len(X))
         np.random.shuffle(idxs)
+        X = X[idxs[:batch_size]].copy()
+        Y = Y[idxs[:batch_size]].copy()
 
-        for batch_idx in np.array_split(idxs, len(X) // batch_size):
-            yield (X[batch_idx], Y[batch_idx])
-
-
-if __name__ == '__main__':
-    dbuilder = DataBuilder()
-    dbuilder.build()
+        yield X, Y

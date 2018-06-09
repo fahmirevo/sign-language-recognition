@@ -2,17 +2,17 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
+# from keras import backend as K
 
-from data import data_generator, CHUNK_SIZE
+from data import data_generator
 
 
 train_level = 9
 batch_size = 32
 num_classes = 10
-epochs = 20
+epochs = 50
 
-steps_per_epoch = train_level * CHUNK_SIZE // batch_size
+steps_per_epoch = 2000 / batch_size
 
 img_rows, img_cols = 64, 64
 
@@ -48,12 +48,12 @@ if __name__ == '__main__':
                   optimizer=keras.optimizers.Adadelta(clipnorm=1.),
                   metrics=['accuracy'])
 
-    model.save("cnn.model")
+    model.save("model")
 
     model.fit_generator(generator=data_generator(batch_size=batch_size),
                         steps_per_epoch=steps_per_epoch,
                         epochs=epochs)
-    model.save("cnn.model")
+    model.save("model")
 
     # model.fit(x_train, y_train,
     #           batch_size=batch_size,
