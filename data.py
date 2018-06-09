@@ -16,6 +16,8 @@ class ModifierFramework(metaclass=abc.ABCMeta):
         mask = self.select(data)
         data[mask] = self.modify(data[mask])
 
+        return data
+
     def select(self, data):
         n_data = data.shape[0]
         return np.random.random(n_data) < self.probability
