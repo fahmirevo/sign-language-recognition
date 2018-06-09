@@ -78,6 +78,9 @@ class RandomModifier:
         self.generator = generator
         self.modifiers = [Blocker(), PixelKiller(), Rotator()]
 
+    def __call__(self):
+        pass
+
     def __next__(self):
         data = next(self.generator)
         for modifier in self.modifiers:
