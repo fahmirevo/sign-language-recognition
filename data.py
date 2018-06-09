@@ -32,19 +32,19 @@ class Blocker(ModifierFramework):
     def modify(self, data):
         n_data = data.shape[0]
         blocker_type = np.random.random(n_data)
-        blocker_range = np.random.randint(0, 20, n_data)
+        blocker_range = np.random.randint(0, 20, 4)
 
         mask = blocker_type < 0.3
-        data[mask, blocker_range[mask]:] = 0
+        data[mask, blocker_range[0]:] = 0
 
         mask = (blocker_type >= 0.3) & (blocker_type < 0.6)
-        data[mask, :blocker_range[mask]] = 0
+        data[mask, :blocker_range[1]] = 0
 
         mask = (blocker_type >= 0.6) & (blocker_type < 0.8)
-        data[mask, :, blocker_range[mask]:] = 0
+        data[mask, :, blocker_range[2]:] = 0
 
         mask = (blocker_type >= 0.8) & (blocker_type < 1)
-        data[mask, :, :blocker_range[mask]] = 0
+        data[mask, :, :blocker_range[3]] = 0
 
         return data
 
