@@ -85,7 +85,7 @@ class RandomModifier:
     def __next__(self):
         data = next(self.generator)
         for modifier in self.modifiers:
-            data = self.modifiers.do(data)
+            data = modifier.do(data)
 
         return data
 
