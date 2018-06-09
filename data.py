@@ -83,11 +83,11 @@ class RandomModifier:
         return self
 
     def __next__(self):
-        data = next(self.generator)
+        X, Y = next(self.generator)
         for modifier in self.modifiers:
-            data = modifier.do(data)
+            X = modifier.do(X)
 
-        return data
+        return X, Y
 
 
 @RandomModifier
