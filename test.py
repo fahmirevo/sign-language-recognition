@@ -1,12 +1,10 @@
 from keras.models import load_model
 import numpy as np
 
-X = np.load("dataset/X_data1.npy")
-Y = np.load("dataset/Y_data1.npy")
+X = np.load("dataset/X_test.npy")
+Y = np.load("dataset/Y_test.npy")
 
-X = X.reshape(X.shape + (1,))
-
-model = load_model("cnn.model")
+model = load_model("model")
 
 score = model.evaluate(X, Y)
 

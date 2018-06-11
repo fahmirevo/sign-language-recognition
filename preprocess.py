@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.signal as sg
 
+TRAIN_SIZE = 0.75
+
 
 def standardize(data):
     data = (data - np.mean(data)) / np.std(data)
@@ -27,26 +29,25 @@ def add_channel(data):
     return data.reshape(data.shape + (1,))
 
 
-def split_save(X, Y, train_size=0.75):
-    idxs = np.arange(len(X))
-    np.random.shuffle(idxs)
+def clean_save(X, Y, name=""):
+    X = standardize(X)
+    X = add_channel(X)
 
-    splitter = int(len(X) * train_size)
-    X_train, Y_train = X[:splitter], Y[:splitter]
-    X_test, Y_test = X[splitter:], Y[splitter:]
-
-    np.save("dataset/X_train", X_train)
-    np.save("dataset/Y_train", Y_train)
-    np.save("dataset/X_test", X_test)
-    np.save("dataset/Y_test", Y_test)
+    np.save("dataset/X_" + name, X)
+    np.save("dataset/Y_" + name, Y)
 
 
 if __name__ == '__main__':
     X = np.load("dataset/X.npy")
     Y = np.load("dataset/Y.npy")
 
-    X = sobel(X * 255)
-    X = standardize(X)
-    X = add_channel(X)
+    idx = np.arange(len(X))
+    np.random.shuffle(idx)
 
-    split_save(X, Y)
+    splitter = int(len(X) * TRAIN_SIZE)
+
+    X_train, X_test = X[:splitter], X[splitter:]
+    Y_train, Y_test = Y[:splitter], Y[splitter:]
+
+    clean_save(X_train, Y_train, name="train")
+    clean_save(X_test, Y_test, name="test")

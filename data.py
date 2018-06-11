@@ -118,3 +118,18 @@ def data_generator(batch_size=128):
         Y_batch = Y[idxs[:batch_size]].copy()
 
         yield X_batch, Y_batch
+
+
+def data_iterator(batch_size=128):
+    X = np.load("dataset/X_train.npy")
+    Y = np.load("dataset/Y_train.npy")
+
+    idxs = np.arange(len(X))
+
+    while True:
+        np.random.shuffle(idxs)
+
+        chunks = np.array_split(idxs, (len(idxs) // batch_size) + 1)
+
+        for chunk in chunks:
+            yield X[chunk], Y[chunk]

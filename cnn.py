@@ -4,13 +4,13 @@ from keras.layers import Dense, Dropout, Flatten, BatchNormalization
 from keras.layers import Conv2D, MaxPooling2D
 # from keras import backend as K
 
-from data import data_generator
+from data import data_iterator
 
 
 train_level = 9
 batch_size = 32
 num_classes = 10
-epochs = 150
+epochs = 15
 
 steps_per_epoch = 2000 / batch_size
 
@@ -25,25 +25,23 @@ if __name__ == '__main__':
     model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      input_shape=input_shape))
-    model.add(BatchNormalization())
+    model.add(BatchNormalization(axis=1))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalization(axis=1))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(BatchNormalization())
+    model.add(BatchNormalization(axis=1))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
     model.add(Flatten())
 
     model.add(Dense(128, activation='relu'))
-    model.add(BatchNormalization())
     model.add(Dropout(0.5))
 
     model.add(Dense(128, activation='relu'))
-    model.add(BatchNormalization())
     model.add(Dropout(0.5))
 
     model.add(Dense(num_classes, activation='softmax'))
@@ -54,7 +52,7 @@ if __name__ == '__main__':
 
     model.save("model")
 
-    model.fit_generator(generator=data_generator(batch_size=batch_size),
+    model.fit_generator(generator=data_iterator(batch_size=batch_size),
                         steps_per_epoch=steps_per_epoch,
                         epochs=epochs)
     model.save("model")
